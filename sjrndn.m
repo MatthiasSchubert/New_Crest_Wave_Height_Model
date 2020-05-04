@@ -1,11 +1,14 @@
 function [height, ParaGev, uep] = sjrndn(norm,char,Type,Para1,Para2,Para3,d0,Nlftms,NSmpls)
 
 % This function generates random 1 hour max normalized wave heights from the Schubert-Jonathan (SJ) distribution function
-% for wave and crest heigths based on the results of the AWARE project and the basin tests by DHI (https://www.dhigroup.com/).
+% for wave and crest heigths based on the results of the AWARE project and the basin tests by DHI.
 %
 % The model assumes that the 1h-max wave heights result from a generalized
 % extreme value distribution with a negative shape parameter, so that the
 % upper end point exists. The output is not sorted.
+
+% Theoretical details of the model can be found in:
+% Schubert M., et. al (2020), On the distribution of maximum crest and wave height at intermediate water depths, Journal of Ocean Engineering
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -17,16 +20,16 @@ function [height, ParaGev, uep] = sjrndn(norm,char,Type,Para1,Para2,Para3,d0,Nlf
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-% Copyrigth by 
+% Copyright by 
 % Matrisk GmbH (https://www.matrisk.com)
-% Total E&P Danmark A/S (https://dk.total.com/), 
+% Total E&P Denmark A/S (https://dk.total.com/), 
 % Shell (https://www.shell.com/)
 
 % Written by Matthias Schubert, Matrisk GmbH & Philip Jonathan, Shell
 %
-% Rev. A 04.12.2017 // Error handling wrt to input is missing. TBD before final release.
+% Rev. A 04.12.2017 // Error handling wrt to input. TBD before final release.
 %
-% Rev. B 14.12.2017 // Wave height and crest height introduced, One function for the wave and crest and normalized and non-normalized space. 
+% Rev. B 14.12.2017 // Wave height and crest height introduced, one function for the wave and crest and normalized and non-normalized space. 
 %
 % Rev. C 18.12.2017 // NEW Wave height and crest height model - normalization of data by average in each WG instead of average achieved Hm0 in basin. 
 %
@@ -38,16 +41,16 @@ function [height, ParaGev, uep] = sjrndn(norm,char,Type,Para1,Para2,Para3,d0,Nlf
 %
 %   Sea-state parameters for normalized analysis:
 %   
-%   d0~depth (model developped for d=45m) (DEFAULT=45m) -  Scalar value
+%   d0~depth (model developed for d=45m) (DEFAULT=45m) -  scalar value
 %   Years - Vector of number of years considered & more than 1 event (storm) per year.
 
 %   norm: 'real' --> gives results in the real space; unit: [m]
 %           Para 1: Hs ~ Significant wave height defined as four times the standard deviation of the surface elevation in [m] (e.g. Hs=14.5)  
 %           Para 2: Tp ~ Spectral peak period  in [s] (e.g. Tp=12)
 %           Para 3: Sp ~ directional spreading in degree (e.g. if Sp_deg=20 then
-%           Sp_dir==180*2^0.5/(pi*(20+1)^0.5)=17.68.
+%           Sp_dir==180*2^0.5/(pi*(20+1)^0.5)=17.68
 
-%         'norm' --> gives results in the normalied space (normalized by Hm0); unit: [-]
+%         'norm' --> gives results in the normalized space (normalized by Hm0); unit: [-]
 %           Para 1: U ~ Ursell number (e.g. U=0.25) --- Vector same size as years (lifetimes)
 %           Para 2: Stp ~ Steepness (e.g. Stp=0.0356) --- Vector same size as years (lifetimes)
 %           Para 3: Sp ~ directional spreading in degree (e.g. if Sp_deg=20 then
@@ -62,9 +65,9 @@ function [height, ParaGev, uep] = sjrndn(norm,char,Type,Para1,Para2,Para3,d0,Nlf
 %								These are inherent uncertainties which might not occur in reality.
 %
 %		  'Hm0VAR'--> Hm0:= the variability of the hourly Hm0 is not considered in the response surface, i.e. the response if fitted to the data normalized by an hourly Hm0.
-%                   			For real applications it is recommanded to use this option. The natural variability of Hm0 in hour is determined by the spectrum. 
+%                   			For real applications it is recommended to use this option. The natural variability of Hm0 in hour is determined by the spectrum. 
 %								For the JONSWAP spectrum a normal distribution with a coefficient of variation is in the range of 0.03-0.04 can be assumed. 
-%								For other sprectra the hourly variability might be different. The result in this case can be multiplied with (randn(Nlftms,NSmpls).*0.04+1):
+%								For other spectra the hourly variability might be different. The result in this case can be multiplied with (randn(Nlftms,NSmpls).*0.04+1):
 %								height_new=bsxfun(@times,height,(randn(Nlftms,NSmpls).*0.04+1));
 %								The natural variability due to the spectrum of Hm0 will be higher for 0.5h max and converge to zero in case of a 100h maximum.
 %
@@ -103,11 +106,11 @@ function [height, ParaGev, uep] = sjrndn(norm,char,Type,Para1,Para2,Para3,d0,Nlf
 %%%%%%%%%%%%%%%%%%%%%
 %
 % The model is constructed using mean value estimates for Steepness and Ursell-Number and Tp.
-% In case Type 2 is chosen, the hourly variability of Hm0 conditional on the sea state parameters need to be considered outside this fuction.
+% In case Type 2 is chosen, the hourly variability of Hm0 conditional on the sea state parameters need to be considered outside this function.
 % In Type 1 included the hourly variability of Hm0 in response surface.
 
-% No Matlab Toolboxes needed to be called for using this function.
-% This code used a cholesky decomposition for generating multivariate
+% No MATLAB Toolboxes needed to be called for using this function.
+% This code used a Cholesky decomposition for generating multivariate
 % random numbers.
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -128,7 +131,7 @@ function [height, ParaGev, uep] = sjrndn(norm,char,Type,Para1,Para2,Para3,d0,Nlf
 %
 %           [h,~,~]=sjrndn('norm','wave','Hm0MEAN',0.25,0.0356,17.68,45,10,10) 
 %           
-%           % In the next examples Type 2 regression is chosen - variablility of Hm0 has to be added
+%           % In the next examples Type 2 regression is chosen - variability of Hm0 has to be added
 %           ouside this function, e.g. with N~(Hm0,Hm0*0.04).
 %
 %           [cr,~,~]=sjrndn('norm','crest','Hm0VAR',0.25,0.0356,17.68,45,1,10)
@@ -160,7 +163,7 @@ function [height, ParaGev, uep] = sjrndn(norm,char,Type,Para1,Para2,Para3,d0,Nlf
         end
         
         if Para3 > 90 
-        error('directional spreading should not be larger than 90[°]');
+        error('directional spreading should not be larger than 90[Â°]');
         end
         
         if d0<5 || d0>100
@@ -172,9 +175,8 @@ function [height, ParaGev, uep] = sjrndn(norm,char,Type,Para1,Para2,Para3,d0,Nlf
            
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%		
-%  INPUT DATA - This data is the output of the WS04 in the Maersk O&G AWARE project.
-%               The model is based on the results of the DHI basin tests
-%               and the LIC engineering numerical modelling. 
+%  INPUT DATA - This data is the output of the AWARE project.
+%               The model is based on the model. 
 %               The response surface model is hard coded for an easy use. 
 %               THIS DATA MUST NOT BE CHANGED!
 
@@ -310,7 +312,7 @@ elseif strcmp(char,'crest')
             %..location parameter of the GEV 	
             Lcbtpsi_mu=[0.835602772827991,0.196930349321298,8.88694345216497,-0.00139849473093344,0.00520503428185160,-106.325572720999,-1.33382935933788e-05,0.476106762609218,-0.00564752436363829,0.0267230220769566];
             
-			%..scale parameter of the GEV
+	    %.scale parameter of the GEV
             Lcbtsgmh_mu=[-2.59398920521512,0.444376697890503,-3.08646521022753,-0.0225739665238025,-0.184761314071880,-198.623965715679,-0.000176972592312079,-15.9543108143504,0.0186614276234371,0.724028022372064];
             
             %..shape parameter of the GEV	
